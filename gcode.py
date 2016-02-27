@@ -5,9 +5,11 @@ import time
 import re
 
 filename = 'rachel.xc'
+directory = 'gcode/'
 
-print filename
+print directory+filename
 
+filename = directory+filename
 
 mh = Adafruit_MotorHAT()
 
