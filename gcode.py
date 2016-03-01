@@ -3,6 +3,7 @@ import threading
 
 import time
 import re
+import numpy
 
 filename = 'rachel.xc'
 directory = 'gcode/'
@@ -59,8 +60,10 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
 def readline(line, cur_x_pos, cur_y_pos):
     if (line[0:3] == 'G02'):
         # Clockwise Arc
+        movearc(line, 1, cur_x_pos, cur_y_pos)
     elif (line[0:3] == 'G03'):
         # Counterclockwise Arc
+        movearc(line, -1, cur_x_pos, cur_y_pos)
     else:
         for line in lines.split(' '):
         #print line[0]
@@ -75,9 +78,21 @@ def readline(line, cur_x_pos, cur_y_pos):
         print "move from " + str(cur_x_pos) + "," + str(cur_y_pos) +" to " + str(new_x) + "," + str(new_y)
         moveto(cur_x_pos, cur_y_pos, new_x, new_y)
 
-def readarc(line,direction,x_pos, y_pos):
+def movearc(line,direction,x_pos, y_pos):
     global cur_x_pos
     global cur_y_pos
+    for item in line.split(' '):            
+        if (item[0] == 'X'):
+            new_x = re.sub("[^0-9.]","",item[1:])
+                #print new_x
+        elif (item[0] == 'Y'):
+            new_y = re.sub("[^0-9.]","",item[1:])
+        elif (item[0] == 'I'): #X offset
+            new_i = re.sub("[^0-9.]","",item[1:])
+        elif (item[0] == 'J'): #Y offset
+            new_j = re.sub("[^0-9.]","",item[1:])
+        
+        
 
 for lines in open(filename, 'r'):
     #print lines.split(' ')
