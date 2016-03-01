@@ -56,20 +56,35 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     cur_x_pos = new_x_pos
     cur_y_pos = new_y_pos
     
+def readline(line, cur_x_pos, cur_y_pos):
+    if (line[0:3] == 'G02'):
+        # Clockwise Arc
+    elif (line[0:3] == 'G03'):
+        # Counterclockwise Arc
+    else:
+        for line in lines.split(' '):
+        #print line[0]
+            
+            if (line[0] == 'X'):
+                new_x = re.sub("[^0-9.]","",line[1:])
+                #print new_x
+                
+            if (line[0] == 'Y'):
+                new_y = re.sub("[^0-9.]","",line[1:])
+                #print new_y
+        print "move from " + str(cur_x_pos) + "," + str(cur_y_pos) +" to " + str(new_x) + "," + str(new_y)
+        moveto(cur_x_pos, cur_y_pos, new_x, new_y)
+
+def readarc(line,direction,x_pos, y_pos):
+    global cur_x_pos
+    global cur_y_pos
 
 for lines in open(filename, 'r'):
     #print lines.split(' ')
-    for line in lines.split(' '):
-        #print line[0]
-        if (line[0] == 'X'):
-            new_x = re.sub("[^0-9.]","",line[1:])
-            #print new_x
-                
-        if (line[0] == 'Y'):
-            new_y = re.sub("[^0-9.]","",line[1:])
-            #print new_y
-    print "move from " + str(cur_x_pos) + "," + str(cur_y_pos) +" to " + str(new_x) + "," + str(new_y)
-    moveto(cur_x_pos, cur_y_pos, new_x, new_y)
+    line = lines.split(' ')
+    line.pop(0) 
+    readline(line,cur_x_pos, cur_y_pos)
+    
 
        
 
