@@ -3,7 +3,7 @@ import threading
 
 import time
 import re
-import numpy
+from numpy import pi, sin, cos, sqrt, arccos, arcsin
 
 filename = 'rachel.xc'
 directory = 'gcode/'
