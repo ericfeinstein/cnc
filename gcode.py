@@ -93,6 +93,42 @@ def movearc(line,direction,x_pos, y_pos):
             new_j = re.sub("[^0-9.]","",item[1:])
         
         
+        x_center=x_pos+new_i   #center of the circle for interpolation
+        y_center=y_pos+new_j
+           
+           
+        delta_x=x_pos-x_center
+        delta_y=y_pos-y_center      #vector [Dx,Dy] points from the circle center to the new position
+           
+        r=sqrt(new_j**2+new_i**2);   # radius of the circle
+           
+            e1=[-i_pos,-j_pos]; #pointing from center to current position
+            if (lines[0:3]=='G02'): #clockwise
+                e2=[e1[1],-e1[0]];      #perpendicular to e1. e2 and e1 forms x-y system (clockwise)
+            else:                   #counterclockwise
+                e2=[-e1[1],e1[0]];      #perpendicular to e1. e1 and e2 forms x-y system (counterclockwise)
+ 
+            #[Dx,Dy]=e1*cos(theta)+e2*sin(theta), theta is the open angle
+ 
+            costheta=(Dx*e1[0]+Dy*e1[1])/r**2;
+            sintheta=(Dx*e2[0]+Dy*e2[1])/r**2;        #theta is the angule spanned by the circular interpolation curve
+               
+            if costheta>1:  # there will always be some numerical errors! Make sure abs(costheta)<=1
+    costheta=1;
+      elif costheta<-1:
+    costheta=-1;
+ 
+            theta=arccos(costheta);
+            if sintheta<0:
+                theta=2.0*pi-theta;
+ 
+            no_step=int(round(r*theta/dx/5.0));   # number of point for the circular interpolation
+           
+            for i in range(1,no_step+1):
+                tmp_theta=i*theta/no_step;
+                tmp_x_pos=xcenter+e1[0]*cos(tmp_theta)+e2[0]*sin(tmp_theta);
+                tmp_y_pos=ycenter+e1[1]*cos(tmp_theta)+e2[1]*sin(tmp_theta);
+                moveto(MX,tmp_x_pos,dx,MY, tmp_y_pos,dy,speed,True);
 
 for lines in open(filename, 'r'):
     #print lines.split(' ')
