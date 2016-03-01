@@ -102,33 +102,35 @@ def movearc(line,direction,x_pos, y_pos):
            
         r=sqrt(new_j**2+new_i**2);   # radius of the circle
            
-            e1=[-i_pos,-j_pos]; #pointing from center to current position
-            if (lines[0:3]=='G02'): #clockwise
-                e2=[e1[1],-e1[0]];      #perpendicular to e1. e2 and e1 forms x-y system (clockwise)
-            else:                   #counterclockwise
-                e2=[-e1[1],e1[0]];      #perpendicular to e1. e1 and e2 forms x-y system (counterclockwise)
+        e1=[-new_i,-new_j]; #pointing from center to current position
+        if (direction == 1): #clockwise
+            e2=[e1[1],-e1[0]];      #perpendicular to e1. e2 and e1 forms x-y system (clockwise)
+        else:                   #counterclockwise
+            e2=[-e1[1],e1[0]];      #perpendicular to e1. e1 and e2 forms x-y system (counterclockwise)
  
             #[Dx,Dy]=e1*cos(theta)+e2*sin(theta), theta is the open angle
  
-            costheta=(Dx*e1[0]+Dy*e1[1])/r**2;
-            sintheta=(Dx*e2[0]+Dy*e2[1])/r**2;        #theta is the angule spanned by the circular interpolation curve
+        costheta=(delta_x*e1[0]+delta_y*e1[1])/r**2;
+        sintheta=(delta_x*e2[0]+delta_y*e2[1])/r**2;        #theta is the angule spanned by the circular interpolation curve
                
-            if costheta>1:  # there will always be some numerical errors! Make sure abs(costheta)<=1
-    costheta=1;
-      elif costheta<-1:
-    costheta=-1;
+        if costheta>1:  # there will always be some numerical errors! Make sure abs(costheta)<=1
+            costheta=1
+        elif costheta<-1:
+            costheta=-1
  
-            theta=arccos(costheta);
-            if sintheta<0:
-                theta=2.0*pi-theta;
+        theta=arccos(costheta)
+        if sintheta<0:
+            theta=2.0*pi-theta
  
-            no_step=int(round(r*theta/dx/5.0));   # number of point for the circular interpolation
+        no_step=int(round(r*theta/5.0))   # number of point for the circular interpolation
            
-            for i in range(1,no_step+1):
-                tmp_theta=i*theta/no_step;
-                tmp_x_pos=xcenter+e1[0]*cos(tmp_theta)+e2[0]*sin(tmp_theta);
-                tmp_y_pos=ycenter+e1[1]*cos(tmp_theta)+e2[1]*sin(tmp_theta);
-                moveto(MX,tmp_x_pos,dx,MY, tmp_y_pos,dy,speed,True);
+        for i in range(1,no_step+1):
+            tmp_theta=i*theta/no_step
+            tmp_x_pos=xcenter+e1[0]*cos(tmp_theta)+e2[0]*sin(tmp_theta)
+            tmp_y_pos=ycenter+e1[1]*cos(tmp_theta)+e2[1]*sin(tmp_theta)
+            moveto(cur_x_pos, cur_y_pos, tmp_x_pos, tmp_y_pos)
+            cur_x_pos = tmp_x_pos
+            cur_y_pos = tmp_y_pos
 
 for lines in open(filename, 'r'):
     #print lines.split(' ')
