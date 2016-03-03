@@ -41,7 +41,7 @@ def turnmotor(motor, value):
         direction = Adafruit_MotorHAT.FORWARD
     
     value = abs(value)*steps
-    mystepper.step(int(value), direction,  Adafruit_MotorHAT.SINGLE)
+    mystepper.step(int(value), direction,  Adafruit_MotorHAT.DOUBLE)
 
 def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     global cur_x_pos
@@ -49,18 +49,21 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     
     x_diff = float(new_x_pos) - float(x_pos)
     y_diff = float(new_y_pos) - float(y_pos)
-    g = int(gcd(x_diff, y_diff))
-    print "gcd"
-    print g
-    if (g>x_diff):
-        g=1
-        
-    if (g>y_diff):
-        g=1
-        
-    if (g>1):
-        for i in range(1,1+g):      
-            moveto(float(x_pos)+x_diff*(i-1), float(y_pos)+y_diff*(i-1), float(new_x_pos)-x_diff*(g-i), float(new_y_pos)-y_diff*(g-i))
+##    m = max(x_diff,y_diff)
+##    n = min(x_diff,y_diff)
+##    if (n == 0):
+##        g = 1
+##    else:
+##        g = max(x_diff,y_diff)%min(x_diff,y_diff)
+##    print "gcd"
+##    print g
+##    g = int(abs(g))
+##    if (g>1):
+##        for i in range(1,1+g):
+##            print i
+##            moveto(float(x_pos)+x_diff/g*(i-1), float(y_pos)+y_diff/g*(i-1), float(new_x_pos)-x_diff/g*(g-i), float(new_y_pos)-y_diff/g*(g-i))
+
+    
     #print x_diff
     #print y_diff
     print "move from " + str(x_pos) + "," + str(y_pos) +" to " + str(new_x_pos) + "," + str(new_y_pos)
@@ -149,8 +152,8 @@ def movearc(line,direction,x_pos, y_pos):
        
     for i in range(1,no_step+1):
         tmp_theta=i*theta/no_step
-        print 90*theta/3.14
-        print 90*tmp_theta/3.14
+        print 180*theta/3.14
+        print 180*tmp_theta/3.14
         tmp_x_pos=x_center+e1[0]*cos(tmp_theta)+e2[0]*sin(tmp_theta)
         print y_center
         print -e1[1]*cos(tmp_theta)

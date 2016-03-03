@@ -10,21 +10,19 @@ from fractions import gcd
 # create a default object, no changes to I2C address or frequency
 mh = Adafruit_MotorHAT()
 
-# create empty threads (these will hold the stepper 1 and 2 threads)
-st1 = threading.Thread()
-st2 = threading.Thread()
+
 
 # args
 
-filename = 'R.gcode'
+filename = 'rachel_plain.gcode'
 directory = 'gcode/'
 
 print directory+filename
 
 filename = directory+filename
 
-speed = 60
-steps = 15
+speed = 100
+steps = 20
 
 x_motor = 1
 y_motor = 2
@@ -53,46 +51,13 @@ style = Adafruit_MotorHAT.SINGLE
 
 def stepper_worker(stepper, numsteps, direction, style):
 	#print("Steppin!")
-	# stepper.step(numsteps, direction, style)
-	print "steppin"
+    stepper.step(numsteps, direction, style)
+    print "steppin"
 	#print("Done")
-
-
-while (True):
-	if not st1.isAlive():
-		# randomdir = random.randint(0, 1)
-		print("Stepper 1"),
-		if (randomdir == 0):
-			dir = Adafruit_MotorHAT.FORWARD
-			print("forward"),
-		else:
-			dir = Adafruit_MotorHAT.BACKWARD
-			print("backward"),
-		randomsteps = random.randint(10,50)
-		print("%d steps" % randomsteps)
-		st1 = threading.Thread(target=stepper_worker, args=(myStepper1, randomsteps, dir, Adafruit_MotorHAT.SINGLE,))
-		st1.start()
-
-	if not st2.isAlive():
-		print("Stepper 2"),
-		# randomdir = random.randint(0, 1)
-		if (randomdir == 0):
-			dir = Adafruit_MotorHAT.FORWARD
-			print("forward"),
-		else:
-			dir = Adafruit_MotorHAT.BACKWARD
-			print("backward"),
-
-		randomsteps = random.randint(10,50)		
-		print("%d steps" % randomsteps)
-
-		st2 = threading.Thread(target=stepper_worker, args=(myStepper2, randomsteps, dir, Adafruit_MotorHAT.SINGLE,))
-		st2.start()
 
 
 def turnmotor(motor, value):
     mystepper = mh.getStepper(200,motor)
-    mystepper.setSpeed(speed)
     if(motor ==1):
         value = -1.0*value
     if(motor ==2):
@@ -104,12 +69,16 @@ def turnmotor(motor, value):
         direction = Adafruit_MotorHAT.FORWARD
     
     value = abs(value)*steps
-    return [int(value), direction]
+    return [int(value), direction, mystepper]
 
 def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     global cur_x_pos
     global cur_y_pos
     
+    # create empty threads (these will hold the stepper 1 and 2 threads)
+    st1 = threading.Thread()
+    st2 = threading.Thread()
+
     x_diff = float(new_x_pos) - float(x_pos)
     y_diff = float(new_y_pos) - float(y_pos)
  	#print x_diff
@@ -117,13 +86,31 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     print "move from " + str(x_pos) + "," + str(y_pos) +" to " + str(new_x_pos) + "," + str(new_y_pos)
     steps1 = turnmotor(x_motor, x_diff)
     steps2 = turnmotor(y_motor, y_diff)
+
+# Slow down one motor
+
+    xs = max(abs(x_diff),1)
+    ys = max(abs(y_diff),1)
     
-    st1 = threading.Thread(target=stepper_worker, args=(x_motor, steps1[0], steps1[1], Adafruit_MotorHAT.SINGLE))
-	st2 = threading.Thread(target=stepper_worker, args=(y_motor, steps2[0], steps2[1], Adafruit_MotorHAT.SINGLE))
+    speed_x = speed*xs/max(xs,ys)
+    speed_y = speed*ys/max(xs,ys)
+    
+    steps1[2].setSpeed(speed_x)
+    steps2[2].setSpeed(speed_y)
+### 
+    
+    st1 = threading.Thread(target=stepper_worker, args=(steps1[2], steps1[0], steps1[1], Adafruit_MotorHAT.SINGLE))
+    st2 = threading.Thread(target=stepper_worker, args=(steps2[2], steps2[0], steps2[1], Adafruit_MotorHAT.SINGLE))
 	
-	st1.start()
-    st2.start()
-        
+    if not st1.isAlive():
+        st1.start()
+    if not st2.isAlive():
+        st2.start()
+
+    while (st1.isAlive() or st2.isAlive()):
+        time.sleep(1)
+        print "sleepin "
+           
     cur_x_pos = new_x_pos
     cur_y_pos = new_y_pos
     
