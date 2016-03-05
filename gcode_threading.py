@@ -21,7 +21,12 @@ print directory+filename
 
 filename = directory+filename
 
-speed = 100
+steps_per_rev = 200
+revs_per_inch = 20
+
+
+
+speed = 50
 steps = 20
 
 x_motor = 1
@@ -94,6 +99,10 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     
     speed_x = speed*xs/max(xs,ys)
     speed_y = speed*ys/max(xs,ys)
+
+    print "SPEED X: " + str(speed_x)
+    print "SPEED Y: " + str(speed_y)
+    
     
     steps1[2].setSpeed(speed_x)
     steps2[2].setSpeed(speed_y)
@@ -107,10 +116,13 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     if not st2.isAlive():
         st2.start()
 
+    slp = 0
     while (st1.isAlive() or st2.isAlive()):
         time.sleep(1)
-        print "sleepin "
-           
+        if (slp == 0):
+                print "sleepin"
+                slp = 1
+                
     cur_x_pos = new_x_pos
     cur_y_pos = new_y_pos
     
@@ -149,45 +161,56 @@ def movearc(line,direction,x_pos, y_pos):
     for item in line:            
         print item
         if (item[0] == 'X'):
-            new_x = re.sub("[^0-9.]","",item[1:])
+            new_x = re.sub("[^-?0-9.]","",item[1:])
                 #print new_x
         elif (item[0] == 'Y'):
-            new_y = re.sub("[^0-9.]","",item[1:])
+            new_y = re.sub("[^-?0-9.]","",item[1:])
         elif (item[0] == 'I'): #X offset
-            new_i = re.sub("[^0-9.]","",item[1:])
+            new_i = re.sub("[^-?0-9.]","",item[1:])
+            print "I: " + str(new_i)
         elif (item[0] == 'J'): #Y offset
-            new_j = re.sub("[^0-9.]","",item[1:])
+            new_j = re.sub("[^-?0-9.]","",item[1:])
+            print "J: " + str(new_j)
         
         
-    x_center=float(x_pos)-float(new_i)   #center of the circle for interpolation
-    y_center=float(y_pos)-float(new_j)
-    print x_center
-    print y_center
+    x_center=float(x_pos)+float(new_i)   #center of the circle for interpolation
+    y_center=float(y_pos)+float(new_j)
+    print "X CENTER: " + str(x_center)
+    print "Y CENTER: " + str(y_center)
        
-    delta_x=float(x_pos)-float(x_center)
-    delta_y=float(y_pos)-float(y_center)     #vector [Dx,Dy] points from the circle center to the new position
-       
+    delta_x=float(new_x)-float(x_center)
+    delta_y=float(new_y)-float(y_center)     #vector [Dx,Dy] points from the circle center to the new position
+    print "DELTA X: " + str(delta_x)
+    print "DELTA Y: " + str(delta_y)
+
     r=sqrt(float(new_j)**2+float(new_i)**2);   # radius of the circle
-       
+    print "r: " + str(r)
+
+    
     e1=[-float(new_i),-float(new_j)]; #pointing from center to current position
     if (direction == 1): #clockwise
-        e2=[-e1[1],e1[0]];      #perpendicular to e1. e2 and e1 forms x-y system (clockwise)
+        e2=[e1[1],-e1[0]];      #perpendicular to e1. e2 and e1 forms x-y system (clockwise)
     else:                   #counterclockwise
-        e2=[e1[1],-e1[0]];      #perpendicular to e1. e1 and e2 forms x-y system (counterclockwise)
+        e2=[-e1[1],e1[0]];      #perpendicular to e1. e1 and e2 forms x-y system (counterclockwise)
 
         #[Dx,Dy]=e1*cos(theta)+e2*sin(theta), theta is the open angle
+
+        # figure out theta, which is the angle of the curve, start to finish
 
     costheta=(delta_x*e1[0]+delta_y*e1[1])/r**2;
     sintheta=(delta_x*e2[0]+delta_y*e2[1])/r**2;        #theta is the angule spanned by the circular interpolation curve
            
     if costheta>1:  # there will always be some numerical errors! Make sure abs(costheta)<=1
         costheta=1
+        print "costheta > 1"
     elif costheta<-1:
         costheta=-1
+        print "costheta <-1"
 
     theta=arccos(costheta)
     if sintheta<0:
         theta=2.0*pi-theta
+        print "sintheta <0"
 
     no_step=10 #int(round(r*theta/5.0))   # number of point for the circular interpolation
        
@@ -196,12 +219,12 @@ def movearc(line,direction,x_pos, y_pos):
         print 90*theta/3.14
         print 90*tmp_theta/3.14
         tmp_x_pos=x_center+e1[0]*cos(tmp_theta)+e2[0]*sin(tmp_theta)
-        print y_center
-        print -e1[1]*cos(tmp_theta)
-        print -e2[1]*sin(tmp_theta)
+        
+        #print -e1[1]*cos(tmp_theta)
+        #print -e2[1]*sin(tmp_theta)
         
         
-        tmp_y_pos=y_center-e1[1]*cos(tmp_theta)-e2[1]*sin(tmp_theta)
+        tmp_y_pos=y_center+e1[1]*cos(tmp_theta)+e2[1]*sin(tmp_theta)
         moveto(cur_x_pos, cur_y_pos, tmp_x_pos, tmp_y_pos)
         cur_x_pos = tmp_x_pos
         cur_y_pos = tmp_y_pos
