@@ -103,7 +103,7 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     print "SPEED X: " + str(speed_x)
     print "SPEED Y: " + str(speed_y)
     
-    
+    ### THIS IS NOT DOING A GOOD JOB!!!
     steps1[2].setSpeed(speed_x)
     steps2[2].setSpeed(speed_y)
 ### 
