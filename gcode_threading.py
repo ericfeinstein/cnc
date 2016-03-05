@@ -54,8 +54,9 @@ atexit.register(turnOffMotors)
 
 style = Adafruit_MotorHAT.SINGLE
 
-def stepper_worker(stepper, numsteps, direction, style):
+def stepper_worker(stepper, numsteps, direction, style, speed):
 	#print("Steppin!")
+    stepper.setSpeed(speed)
     stepper.step(numsteps, direction, style)
     print "steppin"
 	#print("Done")
@@ -86,7 +87,7 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
 
     x_diff = float(new_x_pos) - float(x_pos)
     y_diff = float(new_y_pos) - float(y_pos)
- 	#print x_diff
+    #print x_diff
     #print y_diff
     print "move from " + str(x_pos) + "," + str(y_pos) +" to " + str(new_x_pos) + "," + str(new_y_pos)
     steps1 = turnmotor(x_motor, x_diff)
@@ -97,8 +98,8 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     xs = max(abs(x_diff),1)
     ys = max(abs(y_diff),1)
     
-    speed_x = speed*xs/max(xs,ys)
-    speed_y = speed*ys/max(xs,ys)
+    speed_x = int(speed*xs/max(xs,ys))
+    speed_y = int(speed*ys/max(xs,ys))
 
     print "SPEED X: " + str(speed_x)
     print "SPEED Y: " + str(speed_y)
@@ -108,8 +109,8 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     steps2[2].setSpeed(speed_y)
 ### 
     
-    st1 = threading.Thread(target=stepper_worker, args=(steps1[2], steps1[0], steps1[1], Adafruit_MotorHAT.SINGLE))
-    st2 = threading.Thread(target=stepper_worker, args=(steps2[2], steps2[0], steps2[1], Adafruit_MotorHAT.SINGLE))
+    st1 = threading.Thread(target=stepper_worker, args=(steps1[2], steps1[0], steps1[1], Adafruit_MotorHAT.SINGLE,speed_x))
+    st2 = threading.Thread(target=stepper_worker, args=(steps2[2], steps2[0], steps2[1], Adafruit_MotorHAT.SINGLE,speed_y))
 	
     if not st1.isAlive():
         st1.start()
@@ -237,7 +238,7 @@ for lines in open(filename, 'r'):
         readline(line, cur_x_pos, cur_y_pos)
     
 
-       
+
 
 def box():
     turnmotor(x_motor,100)
