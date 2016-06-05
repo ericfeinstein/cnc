@@ -18,8 +18,8 @@ tophat = Adafruit_MotorHAT(addr=0x61)
 
 mh = bottomhat
 
-speed = 100
-steps = 15
+speed = 50
+steps = 30
 
 x_motor = 1
 y_motor = 2
@@ -36,7 +36,7 @@ new_z = 0
 def turnmotor(motor, value):
     if (motor == 3):
         mystepper = tophat.getStepper(200,1)
-        print "Z ing"
+        print "Z ing " + str(value)
     else:
         mystepper = mh.getStepper(200,motor)
     mystepper.setSpeed(speed)
@@ -84,15 +84,11 @@ def moveto(x_pos, y_pos, new_x_pos, new_y_pos):
     cur_y_pos = new_y_pos
 
 
-thing = 0
-def z_axis():
-    global thing
-    if (thing==1):
-        turnmotor(z_motor, -10)
-        thing = 0
-    if (thing==0):
-        turnmotor(z_motor, 10)
-        thing =1 
+def z_axis(thing):
+    if (thing<0):
+        turnmotor(z_motor, 1)
+    if (thing>0):
+        turnmotor(z_motor, -1)
     
     
 def readline(line, cur_x_pos, cur_y_pos):
@@ -113,7 +109,8 @@ def readline(line, cur_x_pos, cur_y_pos):
         for line in lines.split(' '):
         #print line[0]
             if (line[0] == 'Z'):
-                z_axis()
+                new_z = re.sub("[^0-9.]","",line[1:])
+                z_axis(new_z)
             if (line[0] == 'X'):
                 new_x = re.sub("[^0-9.]","",line[1:])
                 #print new_x
